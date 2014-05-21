@@ -1,0 +1,12 @@
+# view AndroidManifest.xml #generated:43
+-keep class com.jas.fuelwiz.GasStationDisplayActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:35
+-keep class com.jas.fuelwiz.LicenseCheck { <init>(...); }
+
+# view AndroidManifest.xml #generated:23
+-keep class com.jas.fuelwiz.MainActivity { <init>(...); }
+
+# view AndroidManifest.xml #generated:29
+-keep class com.jas.fuelwiz.SettingsActivity { <init>(...); }
+

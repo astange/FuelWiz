@@ -1,0 +1,90 @@
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity" >
+
+<ScrollView
+    android:id="@+id/Scrollview1"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent" >
+
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent" >
+
+    <EditText
+        android:id="@+id/editMPG"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        android:text="20" >
+    </EditText>
+
+    <TextView
+        android:id="@+id/tvMPG"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/editMPG"
+        android:layout_alignBottom="@+id/editMPG"
+        android:layout_alignParentLeft="true"
+        android:padding="5dp"
+        android:text="MPG:"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <Button
+        android:id="@+id/bCompute"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvMyLoc"
+        android:layout_centerHorizontal="true"
+        android:text="Calculate" />
+
+    <EditText
+        android:id="@+id/editGallons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tvGallons"
+        android:layout_alignParentRight="true"
+        android:ems="10"
+        android:inputType="numberDecimal"
+        android:text="15" />
+
+    <TextView
+        android:id="@+id/tvGallons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/editMPG"
+        android:padding="5dp"
+        android:text="Gallons to fill:"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+    
+    <TextView
+        android:id="@+id/tvMyLoc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/tvGallons"
+        android:padding="5dp"
+        android:text="My Location: "
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+        
+
+    <TextView
+        android:id="@+id/tvResult"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/bCompute"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+</RelativeLayout>
+
+</ScrollView>
+
+
+
+</RelativeLayout>

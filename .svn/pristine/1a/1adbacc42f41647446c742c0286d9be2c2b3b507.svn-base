@@ -1,0 +1,80 @@
+package com.jas.fuelwiz;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+
+
+
+
+public class MainActivity extends Activity {
+	//define buttons in xml
+	EditText editDistance, editMPG, editStation1, editStation2, gallonsToFill;
+	Button bCompute;
+	TextView tResult;
+	
+	private double distance, gallons, mpg, priceAtStation1, priceAtStation2;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		//get pointer to button in gui 
+		editDistance = (EditText) findViewById(R.id.editDistance);
+		editMPG = (EditText) findViewById(R.id.editMPG);
+		editStation1 = (EditText) findViewById(R.id.editStation1);
+		editStation2 = (EditText) findViewById(R.id.editStation2);
+		gallonsToFill = (EditText) findViewById(R.id.editGallons);
+		bCompute = (Button) findViewById(R.id.bCompute);
+		tResult = (TextView) findViewById(R.id.tvResult);
+		
+		/*
+		editDistance.setText("0");
+		editMPG.setText("0");
+		editStation1.setText("0");
+		editStation2.setText("0");
+		*/
+		
+		
+		bCompute.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				//set values from edittext to variables:
+				distance = Double.parseDouble(editDistance.getText().toString().trim());
+				mpg = Double.parseDouble(editMPG.getText().toString().trim());
+				priceAtStation1 = Double.parseDouble(editStation1.getText().toString().trim());
+				priceAtStation2 = Double.parseDouble(editStation2.getText().toString().trim());
+				gallons = Double.parseDouble(gallonsToFill.getText().toString().trim());
+				//will fail if not doubles
+				
+				//calculate as double... must parse to $0.00
+				double savings = computeSavings(distance, gallons, mpg, priceAtStation1, priceAtStation2);
+				//either this message or say go to station 1.
+				if(savings > 0.0) {
+				tResult.setText("You will save $" + savings + " by going to station 2");
+				} else {
+					tResult.setText("It is cheaper to go to the closer station. You will spend $" + (savings * -1) + "going to the other station.");
+				}
+			}
+		});
+	}
+
+	private double computeSavings(double distance, double gallonsToFill, double mpg, double priceAtStation1, double priceAtStation2) {
+		//error check within method or at the individual edittexts???
+		return ((Math.abs(priceAtStation1 - priceAtStation2) * gallonsToFill) - (distance / mpg));
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+}

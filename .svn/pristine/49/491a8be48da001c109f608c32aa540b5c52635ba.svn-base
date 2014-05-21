@@ -1,0 +1,15 @@
+package com.jas.fuelwiz;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.widget.ArrayAdapter;
+
+public class GasStationDisplayActivity extends Activity{
+	private ArrayAdapter<GasStation> stations;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.display_activity);
+	}
+}

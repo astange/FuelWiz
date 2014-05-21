@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">FuelWiz</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="network_not_enabled">Please enable Location Settings and Reopen Application</string>
+    <string name="open_location_settings">Open Location Settings</string>
+    <string name="Cancel">Cancel</string>
+    <string name="gas_stations">Gas Stations</string>
+    <string name="viewStationName">StationName</string>
+    <string name="viewPrice">Price</string>
+    <string name="viewDurationAway">Duration</string>
+    <string name="viewAddress">Address</string>
+    <string name="viewDistanceAway">Distance</string>
+    <string name="viewCost">Cost</string>
+
+</resources>

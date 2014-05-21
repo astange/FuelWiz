@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen 
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="General">
+  <!--        <ListPreference android:key="prefSensitivity" android:summary="Edit the sensitivity for the accelerometer" android:title="Sensitivity" android:entries="@array/SensitivityTitleArray" android:entryValues="@array/SensitivityArray" /> -->
+        <CheckBoxPreference android:key="prefShowAllStations" android:summary="Show all gas stations in the area, irregardless if there is no price data or it hasn't been updated in a long time." android:title="Show all gas stations" android:defaultValue="false"/>
+        
+	</PreferenceCategory>
+	<PreferenceCategory android:title="Notice:">
+	    <Preference android:title="" android:key="prefRestart" android:summary="The application must be restarted for some of these settings to take effect" android:selectable="false"/>
+	   
+	       
+	</PreferenceCategory>
+	 <Preference android:title="EULA" android:key="prefEULA" android:summary="Read the terms of use for this application" />    
+    
+</PreferenceScreen>

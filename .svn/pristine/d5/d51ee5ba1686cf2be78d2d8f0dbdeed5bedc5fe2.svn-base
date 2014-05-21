@@ -1,0 +1,245 @@
+package com.jas.fuelwiz;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.app.Dialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.os.AsyncTask;
+import android.text.InputType;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class StationAdapter extends ArrayAdapter<GoogleDistance>{
+    private ArrayList<GoogleDistance> entries;
+    private Activity activity;
+    ViewHolder holder;
+    int position;
+    
+    String fueltypeToUpdate;
+    //fueltype is used for the update....
+    public StationAdapter(Activity a, int textViewResourceId, ArrayList<GoogleDistance> entries, String fueltype) {
+        super(a, textViewResourceId, entries);
+        this.entries = entries;
+        this.activity = a;
+        this.fueltypeToUpdate = fueltype;
+    }
+ 
+    public static class ViewHolder{
+        public TextView tPrice, tTotalCost, tStationName;
+        public TextView tDistanceAndDurationAway, tAddress, tLastUpdated;
+        
+    }
+ 
+    @Override
+    public View getView(final int position, View convertView, ViewGroup parent) {
+        View v = convertView;
+        this.position = position;
+        if (v == null) {
+            LayoutInflater vi =
+                (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            v = vi.inflate(R.layout.text_station_item, null);
+            holder = new ViewHolder();
+            holder.tPrice = (TextView) v.findViewById(R.id.price);
+            holder.tDistanceAndDurationAway = (TextView) v.findViewById(R.id.distanceAndDurationAway);
+            holder.tTotalCost = (TextView) v.findViewById(R.id.totalCost);
+            holder.tStationName = (TextView) v.findViewById(R.id.stationName);
+            holder.tAddress = (TextView) v.findViewById(R.id.stationAddress);
+            holder.tLastUpdated = (TextView) v.findViewById(R.id.lastUpdate);
+            v.setTag(holder);
+        }
+        else
+            holder=(ViewHolder)v.getTag();
+ 
+        final GoogleDistance custom = entries.get(position);
+        if (custom != null) {
+        	//check to see if price is not available...
+        	if(MainActivity.ReturnedDrivingDistances[position].getStation().getPriceAsDouble() == 0.0) {
+        		holder.tPrice.setText(MainActivity.ReturnedDrivingDistances[position].getStation().getPrice());
+        	} else {
+            holder.tPrice.setText(NumberFormat.getCurrencyInstance().format(MainActivity.ReturnedDrivingDistances[position].getStation().getPriceAsDouble()));
+        	}
+            holder.tDistanceAndDurationAway.setText(MainActivity.ReturnedDrivingDistances[position].getGDistance() + " or " + MainActivity.ReturnedDrivingDistances[position].getDuration() + " away");
+            holder.tTotalCost.setText("Total cost: " + MainActivity.ReturnedDrivingDistances[position].getStation().getSavingsFormatted());
+            holder.tStationName.setText(MainActivity.ReturnedDrivingDistances[position].getStation().getName());
+            holder.tAddress.setText(MainActivity.ReturnedDrivingDistances[position].getStation().getAddress());
+            holder.tLastUpdated.setText("Last updated " + MainActivity.ReturnedDrivingDistances[position].getStation().getLastUpdated());
+            holder.tPrice.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					alertUpdatePrice(position);
+					}
+			});
+        }
+        return v;
+    }
+    
+    public void alertUpdatePrice(final int position) {
+		AlertDialog.Builder dialog;
+		dialog = new AlertDialog.Builder(getContext());
+        dialog.setTitle("Submit New Price?");
+        final EditText newPriceEdit = new EditText(getContext());
+        newPriceEdit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        dialog.setView(newPriceEdit);
+        dialog.create();
+        dialog.setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                // TODO Auto-generated method stub
+            	try {
+            		String priceToUpdate = newPriceEdit.getText().toString();
+            		if(Math.abs(entries.get(position).getStation().getPriceAsDouble() - Double.parseDouble(priceToUpdate)) > (entries.get(position).getStation().getPriceAsDouble() * .25)) {
+            			errorDialog("Unable to change gas price more than 25% of current price");
+            			return;
+            		}
+            		httpPOST(position, priceToUpdate);
+            	} catch (NumberFormatException n) {
+            		Toast.makeText(getContext(), "Invalid input", Toast.LENGTH_SHORT).show();
+            		return;
+            	}
+            }          
+        });
+        dialog.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				
+			}
+		});
+        dialog.setCancelable(false);
+        dialog.show();
+	} 
+    
+    private void errorDialog(String message) {
+    	final AlertDialog.Builder dialogBuild = new AlertDialog.Builder(getContext());
+    	dialogBuild.setMessage(message);
+    	
+    	dialogBuild.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+			}
+		});
+    	dialogBuild.create().show();
+    }
+    
+    	@SuppressWarnings("unchecked")
+		private void httpPOST(final int position, final String priceToUpdate) {
+    		//http post goes here.
+    		ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+
+    		//place them in an array list
+    		nameValuePairs.add(new BasicNameValuePair("price", priceToUpdate));
+    		nameValuePairs.add(new BasicNameValuePair("fueltype", "reg"));
+        	nameValuePairs.add(new BasicNameValuePair("stationid", entries.get(position).getStation().getStationID()));
+        	//new Async task!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        	UpdatePriceAsyncTask updatePriceTask = new UpdatePriceAsyncTask();
+        	updatePriceTask.execute(nameValuePairs);	
+        	
+
+    	}
+    	
+    	
+    	    	
+    	private class UpdatePriceAsyncTask extends AsyncTask<ArrayList<NameValuePair>, Void, String[]> {
+    	        ProgressDialog mProgressDialog;
+    	        
+    	        @Override
+    	        protected void onPostExecute(String[] result) {
+    	            mProgressDialog.dismiss();
+    	            if(result != null) {
+    	            	Toast.makeText(getContext(), "Price Updated Successfully", Toast.LENGTH_SHORT).show();
+    	            	//set new prices
+    	            	
+    	            	//holder.tPrice.setText(NumberFormat.getCurrencyInstance().format(result[0]));
+    	            	//holder.tLastUpdated.setText(result[1]);
+    	            } else {
+    	            	Toast.makeText(getContext(), "Failed to update price", Toast.LENGTH_SHORT).show();
+    	            }
+    	        }
+
+    	        @Override
+    	        protected void onPreExecute() {
+    	            mProgressDialog = ProgressDialog.show(getContext(), "Executing...", "Updating Price...");
+    	        }
+
+    	        @Override
+    	        protected String[] doInBackground(ArrayList<NameValuePair>... infoPairs) {
+    	            //Create new default HTTPClient
+    	            HttpClient httpclient = new DefaultHttpClient();
+    	            //Create new HTTP POST with URL to php file as parameter
+    	            HttpPost httppost = new HttpPost("http://api.mygasfeed.com/locations/price/ytc0ljswtd.json"); 
+    	            //Next block of code needs to be surrounded by try/catch block for it to work
+    	            try {
+    	                //Add array list to http post
+    	                httppost.setEntity(new UrlEncodedFormEntity(infoPairs[0]));
+    	                //assign executed form container to response
+    	                HttpResponse response = httpclient.execute(httppost); //response
+    	                //assign response entity to http entity
+    	                HttpEntity entity = response.getEntity();
+    	                //check if entity is not null
+    	                if(entity != null){
+    	                 	//Create new input stream with received data assigned
+    	                    InputStream instream = entity.getContent();
+    	                    InputStreamReader reader = new InputStreamReader(instream);
+    	                    BufferedReader bufferedReader = new BufferedReader(reader);
+
+    	                    StringBuilder stringBuilder = new StringBuilder();
+
+    	                    String bufferedStrChunk = null;
+
+    	                    while((bufferedStrChunk = bufferedReader.readLine()) != null){
+    	                        stringBuilder.append(bufferedStrChunk);
+    	                    }
+    	                    
+    	                    String result = stringBuilder.toString();
+    	                        	                    
+    	                    //Create new JSON Object. assign converted data as parameter.
+    	                    JSONObject jsonResponse = new JSONObject(result);
+    	                    if(jsonResponse.getJSONObject("status").getString("error").equalsIgnoreCase("NO")) {
+    	                    	String[] newPrice = new String[2];
+    	                    	//get new price and last updated values
+    	                    	newPrice[0] = jsonResponse.getJSONObject("details").getString(fueltypeToUpdate + "_price");
+    	                    	newPrice[1] = "Last Updated " + jsonResponse.getJSONObject("details").getString(fueltypeToUpdate +"_date");
+
+    	                    	return newPrice;
+    	                    } else {
+    	                    	return null;
+    	                    }
+    	                    }
+    	                } catch(Exception e){
+    	                		return null;
+    	                }
+					return null;
+    	        }
+    	}
+
+    	            
+    	        
+}

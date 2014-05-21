@@ -1,0 +1,10 @@
+package com.jas.fuelwiz;
+
+public class GasStation {
+	private int price;
+	private String name;
+	
+	public GasStation(){
+		
+	}
+}

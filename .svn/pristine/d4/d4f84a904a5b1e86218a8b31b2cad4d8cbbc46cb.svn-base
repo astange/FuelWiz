@@ -1,0 +1,477 @@
+package com.jas.fuelwiz;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Looper;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.ProgressBar;
+import android.widget.TabHost;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
+
+
+public class MainActivity extends Activity{
+	//define buttons in xml
+	EditText editMPG, gallonsToFill;
+	static Button bCompute;
+	TextView tGallonstoFill, tSeekRadius;
+	TabHost gasGradeTabs;
+	SeekBar seekRadius;
+	public static CheckBox checkHighways, checkTolls; 
+	CheckBox checkTwoWay; 
+	ToggleButton tbManual;
+		
+	public static String longitude;
+	public static String latitude;
+	
+	private double gallons, mpg;
+	public static int radius;
+	public static GoogleDistance[] ReturnedDrivingDistances;
+		
+	SharedPreferences savedinputs;
+	TabHost tabHost;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+			
+		setContentView(R.layout.activity_main);
+		savedinputs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+		
+		if(!LicenseCheck.valid){
+			finish();
+		}
+		
+		//get pointer to button in gui
+		editMPG = (EditText) findViewById(R.id.editMPG);
+		gallonsToFill = (EditText) findViewById(R.id.editGallons);
+		bCompute = (Button) findViewById(R.id.bCompute);
+		tGallonstoFill = (TextView) findViewById(R.id.tvGallons);
+		tSeekRadius = (TextView) findViewById(R.id.tseekRadius);
+		checkHighways = (CheckBox) findViewById(R.id.checkHighWays);
+		checkTolls = (CheckBox) findViewById(R.id.checkTolls);
+		checkTwoWay = (CheckBox) findViewById(R.id.checkTwoWayTrip);
+		tbManual = (ToggleButton) findViewById(R.id.tBManualLocation);
+		
+		tabHost = (TabHost) findViewById(android.R.id.tabhost);
+		tabHost.setup();
+		tabHost.addTab(tabHost.newTabSpec("reg").setIndicator("Regular").setContent(R.id.tabReg));
+		tabHost.addTab(tabHost.newTabSpec("mid").setIndicator("Midgrade").setContent(R.id.tabMid));
+		tabHost.addTab(tabHost.newTabSpec("pre").setIndicator("Premium").setContent(R.id.tabPre));
+		tabHost.addTab(tabHost.newTabSpec("diesel").setIndicator("Diesel").setContent(R.id.tabDiesel));
+	    for(int i = 0; i < tabHost.getTabWidget().getChildCount(); i++) {
+	        TextView tv = (TextView) tabHost.getTabWidget().getChildAt(i).findViewById(android.R.id.title);
+	        tv.setTextColor(Color.WHITE);
+	    }
+
+		seekRadius = (SeekBar) findViewById(R.id.seekRadius);
+		seekRadius.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {}
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {}
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				radius = progress/10;
+				tSeekRadius.setText("Radius: " + radius + " mi");
+			}
+		});
+		
+		//get shared prefs that were saved
+		editMPG.setText(savedinputs.getString("mpg", "25"));
+		gallonsToFill.setText(savedinputs.getString("gallons", "15"));
+		checkHighways.setChecked(savedinputs.getBoolean("highway", false));
+		checkTolls.setChecked(savedinputs.getBoolean("toll", false));
+		checkTwoWay.setChecked(savedinputs.getBoolean("twoway", true));
+		seekRadius.setProgress(savedinputs.getInt("radius", 3) * 10);
+		tabHost.setCurrentTabByTag(savedinputs.getString("gasGrade", "reg"));
+		tbManual.setChecked(savedinputs.getBoolean("isManualLocationChecked", false));
+		
+		//IF IT CONTAINS so savedinputs.contains() all 7 prefs so && operator then you go straight to the listview. (skip button click)
+		//progress for location.
+		tbManual.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if(isChecked) {
+					AlertDialog.Builder build = new AlertDialog.Builder(MainActivity.this);
+					final EditText eLocation = new EditText(getApplicationContext());
+					eLocation.setFocusable(true);
+					eLocation.setTextColor(Color.BLACK);
+					eLocation.setText(savedinputs.getString("manualLocation", "New York City, NY"));
+					build.setCancelable(false);
+					build.setTitle("Enter manual location");
+					final SharedPreferences.Editor editor = savedinputs.edit();
+					build.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							editor.putString("manualLocation", eLocation.getText().toString());
+							editor.commit();
+							tbManual.setChecked(true);							
+						}
+					});
+					build.setNegativeButton("Clear", new DialogInterface.OnClickListener() {
+						
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							editor.remove("manualLocation");
+							editor.commit();
+							tbManual.setChecked(false);
+						}
+					});
+					build.setView(eLocation);
+					build.create().show();
+				} else {
+					//recheck for location enabled, otherwise will crash.
+					LocationManager locm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			    	if(!locm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+			    		locationAccessAlert();
+			    	}
+				}
+			}
+		});
+		
+		//check for location access via gps.
+		LocationManager locm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+    	if(!locm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+    		locationAccessAlert();
+    	}
+		
+		//*************************************************************************************************************
+		//get users location, either manually or via gps. this is in oncreate. then every time that you click use manual, it gets location again.	
+		bCompute.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				parseUserInputstoDouble();
+				doEverythingTask doall = new doEverythingTask();
+				doall.execute();
+				savePrefs();
+			}
+		});
+	}
+	
+	private void startListActivity() {
+		Intent displayActivity = new Intent(getApplicationContext(), GasStationDisplayActivity.class);
+		startActivity(displayActivity);
+	}
+	
+	private void parseUserInputstoDouble() {
+		try {
+			mpg = Double.parseDouble(editMPG.getText().toString().trim());
+			gallons = Double.parseDouble(gallonsToFill.getText().toString().trim());
+		} catch (NumberFormatException e) {
+		    	 mpg = 10;
+		    	 gallons = 0;
+		}
+	}
+	
+	private void getLocationViaGeoCode() {
+		Geocoder geocoder = new Geocoder(MainActivity.this);  
+		try {
+			List<Address> addresses;
+			addresses = geocoder.getFromLocationName(savedinputs.getString("manualLocation", "New York City"), 1);
+			if(addresses.size() > 0) {
+				latitude = "" + addresses.get(0).getLatitude();
+			    longitude = "" + addresses.get(0).getLongitude();
+			}
+			else {
+				//Toast.makeText(getApplicationContext(), "Could not resolve location. Please check the entry and try again.", Toast.LENGTH_SHORT).show();
+			}
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+		}		
+	}
+	
+	private void getLocationViaGPS() {
+
+		LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+	//	AlertDialog.Builder dialog;
+        try{
+        	//if(lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+        	if(lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+        		LocationListener locationListener = new MyLocationListener();  
+        		Looper loop = Looper.getMainLooper();
+        		
+        		//ask if they want to use manual location from before (if it exists)
+        		
+        		//locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+        		lm.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, locationListener, loop);
+        	} else {
+        		return;
+        	}
+
+        }catch(Exception ex){
+        	ex.printStackTrace();
+        }
+		
+	}
+	
+	@Override
+	public void onBackPressed() {
+		SharedPreferences.Editor editor = savedinputs.edit();
+		editor.putBoolean("highway", checkHighways.isChecked());
+		editor.putBoolean("toll", checkTolls.isChecked());
+		editor.putBoolean("twoway", checkTwoWay.isChecked());
+		editor.putString("mpg", editMPG.getText().toString());
+		editor.putString("gallons", gallonsToFill.getText().toString());
+		editor.putInt("radius", radius);
+		editor.putString("gasGrade", tabHost.getCurrentTabTag());
+		editor.putBoolean("isManualLocationChecked", tbManual.isChecked());
+		editor.commit();
+		this.finish();
+	}
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+		return true;
+	}
+	
+	public void savePrefs() {
+		SharedPreferences.Editor editor = savedinputs.edit();
+		editor.putBoolean("highway", checkHighways.isChecked());
+		editor.putBoolean("toll", checkTolls.isChecked());
+		editor.putBoolean("twoway", checkTwoWay.isChecked());
+		editor.putString("mpg", editMPG.getText().toString());
+		editor.putString("gallons", gallonsToFill.getText().toString());
+		editor.putInt("radius", radius);
+		editor.putString("gasGrade", tabHost.getCurrentTabTag());
+		editor.putBoolean("isManualLocationChecked", tbManual.isChecked());
+		editor.commit();
+
+	}
+	
+	private GasStation[] getGasStations() {
+		if(latitude == null || longitude == null) return null;
+		GasStation[] ReturnedStations = GasStationRequest.getGasStationsDistance(latitude, longitude, ""+radius, tabHost.getCurrentTabTag(), "price");
+		if(ReturnedStations == null) {
+			//Toast.makeText(getApplicationContext(), "There was an error parsing data from the gas station database. Please reset your connection and try again.", Toast.LENGTH_LONG).show();
+		}
+		return ReturnedStations;
+	}
+	
+	private void getDrivingDistances(GasStation[] ReturnedStations) {
+		ReturnedDrivingDistances = GoogleDistanceMatrixRequest.getGoogleDistanceRequest(latitude, longitude, ReturnedStations);
+		if(ReturnedDrivingDistances == null) {
+			//Toast.makeText(getApplicationContext(), R.string.overQueryLimit, Toast.LENGTH_LONG).show();
+			//Toast.makeText(getApplicationContext(), "There was an error parsing data from the gas station database. Please reset your connection and try again.", Toast.LENGTH_LONG).show();
+			return;
+		}
+	}
+	
+	private void setSavings() {
+		for(int i = 0; i < ReturnedDrivingDistances.length; i++) {
+			ReturnedDrivingDistances[i].getStation().setSavings(computeTotalCost(ReturnedDrivingDistances[i].getDistanceInMiles(), 
+																				gallons, 
+																				mpg, 
+																				Double.parseDouble(ReturnedDrivingDistances[i].getStation().getPrice()), 
+																				checkTwoWay.isChecked()));
+		}
+	}
+	
+	private void sortGasStations() {
+		//sort in ascending order by cheapest station to go to
+	//	sortbySavings(ReturnedDrivingDistances);
+		Arrays.sort(ReturnedDrivingDistances);
+		for(int i = 0; i < ReturnedDrivingDistances.length - 1; i++) {
+			double DifferenceInSavings = ReturnedDrivingDistances[i+1].getStation().getSavings() - ReturnedDrivingDistances[i].getStation().getSavings();
+			ReturnedDrivingDistances[i].getStation().setDifferenceInSavings(DifferenceInSavings);
+		}
+		//save user inputs...
+	}
+
+
+	private double computeTotalCost(double distance, double gallonsToFill, double mpg, double priceOfGas, boolean twoWayTrip) {
+		if(twoWayTrip) {
+			distance *= 2;
+		}
+		return (((distance/mpg) + gallonsToFill) * priceOfGas);
+	}
+/*
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+*/	
+	private class MyLocationListener implements LocationListener {
+
+	    @Override
+	    public void onLocationChanged(Location loc) {
+	        longitude = "" + loc.getLongitude();
+	        latitude = "" + loc.getLatitude();
+	    }
+
+	    @Override
+	    public void onProviderDisabled(String provider) {}
+
+	    @Override
+	    public void onProviderEnabled(String provider) {}
+
+	    @Override
+	    public void onStatusChanged(String provider, int status, Bundle extras) {}
+	}
+	
+	private class doEverythingTask extends AsyncTask<Void, String, String> {
+		ProgressDialog progress;
+		
+		public doEverythingTask() {
+			// TODO Auto-generated constructor stub
+			progress = new ProgressDialog(MainActivity.this);
+			progress.setTitle("Executing...");
+		}
+		
+		@Override
+		protected String doInBackground(Void... params) {
+			String lat = latitude;
+			/*if(tbManual.isChecked()) {
+				getLocationViaGeoCode();
+				if(lat == latitude) {
+					try {
+						wait(100);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				String values = "location set via address...";
+				publishProgress(values);
+			} else {
+				String values = "Getting location via GPS...";
+				publishProgress(values);
+				getLocationViaGPS();
+			}*/
+			publishProgress("Getting list of gas stations in the area...");
+			GasStation[] ReturnedStations = getGasStations();
+			if(ReturnedStations == null) { 
+			//	cancel(true);
+				progress.dismiss();
+				return "Unable to get list of gas stations, please try again.";
+			}
+			publishProgress("Computing driving distance to stations...");
+			getDrivingDistances(ReturnedStations);
+			if(ReturnedDrivingDistances == null) { 
+				//cancel(true);
+				progress.dismiss();
+				return "Unable to get driving distance to gas stations, please check your location settings and try again.";
+			}
+			publishProgress("Calculating price to drive to each station...");
+			setSavings();
+			publishProgress("Sorting stations by total cost...");
+			sortGasStations(); 
+            return "Success!";
+		}
+		
+		@Override
+		protected void onProgressUpdate(String... values) {
+			super.onProgressUpdate(values);
+			progress.setMessage(values[0]);
+		}
+		
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			progress.setMessage("Started...");
+			progress.show();
+			//get location.
+			if(tbManual.isChecked()) {
+				getLocationViaGeoCode();
+				String values = "location set via address...";
+				publishProgress(values);
+			} else {
+				String values = "Getting location via GPS...";
+				publishProgress(values);
+				getLocationViaGPS();
+			}
+		}
+		
+		@Override
+		protected void onPostExecute(String result) {
+			progress.dismiss();
+			//if nothing to display on the list, cancel.
+			if(ReturnedDrivingDistances == null) return;
+			if(ReturnedDrivingDistances.length == 0) {
+				Toast.makeText(getApplicationContext(), "Connection error, please try again.", Toast.LENGTH_SHORT).show();
+				return;
+			}
+			if(!result.equals("Success!")) {
+			Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+			return;
+			} else {
+				Intent displayActivity = new Intent(getApplicationContext(), GasStationDisplayActivity.class);
+				startActivity(displayActivity);
+			}
+		}
+		
+	}
+	
+	private void locationAccessAlert() {
+		AlertDialog.Builder dialog;
+		dialog = new AlertDialog.Builder(this);
+        dialog.setMessage(this.getResources().getString(R.string.network_not_enabled));
+        dialog.setPositiveButton(this.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                // TODO Auto-generated method stub
+                Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS );
+                startActivity(myIntent);
+                //get gps
+            }
+        });
+        dialog.setNegativeButton(this.getString(R.string.Cancel), new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                finish();
+            }
+        });
+        dialog.setNeutralButton("Use Manual Location", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				tbManual.setChecked(true);
+				
+			}
+		});
+        dialog.setCancelable(false);
+        dialog.show();
+	} 
+	
+}

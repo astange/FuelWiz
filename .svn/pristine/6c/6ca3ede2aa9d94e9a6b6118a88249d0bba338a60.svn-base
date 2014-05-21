@@ -1,0 +1,72 @@
+package com.jas.fuelwiz;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Scanner;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.os.StrictMode;
+
+public class GoogleDistanceMatrixRequest {
+	
+	//need to return duration and distance
+	public static GoogleDistance[] getGoogleDistanceRequest(String longitude, String latitude, GasStation[] gasStations) {
+		
+		GoogleDistance[] results = null;
+		
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy); 
+		
+		try {
+			URL url = new URL(getURL(latitude, longitude, gasStations));
+			URLConnection conn = url.openConnection();
+			InputStream is = conn.getInputStream();
+			Scanner scan = new Scanner(is);
+			String fromInternet = "";
+			while(scan.hasNext()) {
+				fromInternet += scan.next();
+				fromInternet += " ";
+			}
+			is.close();
+			System.out.println(fromInternet);
+			JSONObject json = new JSONObject(fromInternet);
+	//		JSONArray stations = json.getJSONArray("rows").getJSONArray(0);
+			
+			
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace(); 
+		}
+		
+		
+		return null;
+		
+	}
+	
+	public static String getURL(String latitude, String longitude, GasStation[] gasStations) {
+		String urlString = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" + latitude + "," + longitude + "&destinations=";
+		//format destinations
+		String destinationsformatted = "";
+		for(int i = 0; i < gasStations.length; i++) {
+			destinationsformatted += gasStations[i].getLatitude() + "," + gasStations[i].getLongitude();
+			destinationsformatted += "|";
+		}
+		destinationsformatted = destinationsformatted.substring(0, destinationsformatted.length() - 1);
+		urlString += destinationsformatted + "&mode=driving&sensor=true";
+		
+		return urlString;
+	}
+		
+}

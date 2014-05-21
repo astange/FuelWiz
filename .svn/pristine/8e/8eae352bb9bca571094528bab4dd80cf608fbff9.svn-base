@@ -1,0 +1,253 @@
+package com.jas.fuelwiz;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Looper;
+import android.provider.Settings;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.util.Log;
+import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+
+
+
+public class MainActivity extends Activity {
+	//define buttons in xml
+	EditText editMPG, gallonsToFill;
+	Button bCompute;
+	TextView tResult, tMyLocation, tGallonstoFill;
+	
+	public String longitude, latitude;
+	
+	private double distanceToStation1, distanceToStation2, gallons, mpg, priceAtStation1, priceAtStation2;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		//new ProgressBar().execute();
+		setContentView(R.layout.activity_main);
+		//get pointer to button in gui
+		
+		editMPG = (EditText) findViewById(R.id.editMPG);
+		gallonsToFill = (EditText) findViewById(R.id.editGallons);
+		bCompute = (Button) findViewById(R.id.bCompute);
+		tResult = (TextView) findViewById(R.id.tvResult);
+		tGallonstoFill = (TextView) findViewById(R.id.tvGallons);
+		tMyLocation = (TextView) findViewById(R.id.tvMyLocation);
+		
+		bCompute.setEnabled(false);
+		
+		LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		AlertDialog.Builder dialog;
+        try{
+        	if(lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)){
+        		LocationListener locationListener = new MyLocationListener();  
+        		Looper loop = Looper.getMainLooper();
+        		//locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+        		lm.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, locationListener, loop);
+        	}
+        	else{
+        		dialog = new AlertDialog.Builder(this);
+	            dialog.setMessage(this.getResources().getString(R.string.network_not_enabled));
+	            dialog.setPositiveButton(this.getResources().getString(R.string.open_location_settings), new DialogInterface.OnClickListener() {
+
+	                @Override
+	                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+	                    // TODO Auto-generated method stub
+	                    Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS );
+	                    startActivity(myIntent);
+	                    //get gps
+	                }
+	            });
+	            dialog.setNegativeButton(this.getString(R.string.Cancel), new DialogInterface.OnClickListener() {
+
+	                @Override
+	                public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+	                    finish();
+	                }
+	            });
+	            dialog.show();
+        	}
+        }catch(Exception ex){}
+	       
+		
+		/*
+		editDistance.setText("0");
+		editMPG.setText("0");
+		editStation1.setText("0");
+		editStation2.setText("0");
+		*/
+		
+		
+		bCompute.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				//set values from edittext to variables:
+				mpg = Double.parseDouble(editMPG.getText().toString().trim());
+				gallons = Double.parseDouble(gallonsToFill.getText().toString().trim());
+				//will fail if not doubles
+				
+		/*		//calculate as double... must parse to $0.00
+				double savings = computePriceToGoToAndFromStation(distanceToStation1, gallons, mpg, priceAtStation1) - computePriceToGoToAndFromStation(distanceToStation2, gallons, mpg, priceAtStation2);
+				//either this message or say go to station 1.
+				String savingsToDollars = "" + Math.round((savings*100))/100;
+				if(savings > 0.0) {
+				tResult.setText("You will save $" + savingsToDollars + " by going to station 2");
+				} else {
+					tResult.setText("It is cheaper to go to the closer station. You will spend $" + savingsToDollars + "going to the other station.");
+				}
+		*/		
+				//testing GasStationRequest.java
+				GasStation[] ReturnedStations = GasStationRequest.getGasStationsDistance(latitude, longitude, "2", "reg", "price");
+				String stationsReturned = "";
+				for(int i = 0; i < ReturnedStations.length; i++) {
+					stationsReturned += ReturnedStations[i].getAddress() + "\n";
+				}
+				
+				GoogleDistance[] ReturnedDrivingDistances = GoogleDistanceMatrixRequest.getGoogleDistanceRequest(latitude, longitude, ReturnedStations);
+				
+				for(int i = 0; i < ReturnedDrivingDistances.length; i++) {
+					ReturnedDrivingDistances[i].getStation().setSavings(computeSavings(ReturnedDrivingDistances[i].getDistanceInMiles(), 
+							gallons, 
+							mpg, 
+							Double.parseDouble(ReturnedDrivingDistances[i].getStation().getPrice())));
+				}
+				
+				//sortbySavings(ReturnedDrivingDistances);
+				
+				//output to the screen the stations, ordered by price.
+				String drivingDistanceReturned = "";
+				for(int i = 0; i < ReturnedDrivingDistances.length; i++) {
+					drivingDistanceReturned += ReturnedDrivingDistances[i].getStation().toDestination() + 
+							"\nPrice: $" + ReturnedDrivingDistances[i].getStation().getPrice() + 
+							"\nDistance away: " + ReturnedDrivingDistances[i].getGDistance() + 
+							" or about " + ReturnedDrivingDistances[i].getDuration() + "\n\n";
+				}
+				tMyLocation.setText("My Location: " + GoogleDistanceMatrixRequest.mylocation);
+				tResult.setTextSize(14);
+				tResult.setText(drivingDistanceReturned);
+			}
+		});
+	}
+	
+	private void sortbySavings(GoogleDistance[] returnedDrivingDistances) {
+        int minindex = 0; 
+        GoogleDistance temp = null;
+		for(int x=0; x < returnedDrivingDistances.length - 1; x++){
+            double minPrice = returnedDrivingDistances[x].getStation().getPriceAsDouble();
+            GoogleDistance min = returnedDrivingDistances[x];
+            for(int i = x; i < returnedDrivingDistances.length; i++){
+                    if(returnedDrivingDistances[i].getStation().getPriceAsDouble() < minPrice){
+                    minPrice = returnedDrivingDistances[i].getStation().getPriceAsDouble();
+                    min = returnedDrivingDistances[i];
+                    minindex = i;
+                    }
+            }
+            temp = returnedDrivingDistances[x];
+            returnedDrivingDistances[x] = min;
+            returnedDrivingDistances[minindex] = temp;
+        }
+	}
+
+	private double computeSavings(double distance, double gallonsToFill, double mpg, double priceOfGas) {
+		return ((priceOfGas * gallonsToFill) - (distance / mpg));
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+	
+	private class MyLocationListener implements LocationListener {
+
+	    @Override
+	    public void onLocationChanged(Location loc) {
+	        longitude = "" + loc.getLongitude();
+	        latitude = "" + loc.getLatitude();
+	        tResult.setText(latitude + "," + longitude);
+	        bCompute.setEnabled(true);
+	    }
+
+	    @Override
+	    public void onProviderDisabled(String provider) {}
+
+	    @Override
+	    public void onProviderEnabled(String provider) {}
+
+	    @Override
+	    public void onStatusChanged(String provider, int status, Bundle extras) {}
+	}
+
+	private class ProgressBar extends AsyncTask<Void, Integer, Void>{
+		private ProgressDialog pd;
+		@Override
+		protected void onPreExecute() {
+			//initialize a new instance of Progress Dialog and configure settings
+			pd = new ProgressDialog(MainActivity.this);
+			pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			pd.setTitle("Loading...");
+			pd.setMessage("Loading application, please wait");
+			pd.setCancelable(false);
+			pd.setIndeterminate(true);
+			pd.show();
+			
+		}
+
+		/*
+		 * Background task to run before loading the application
+		 */
+		@Override
+		protected Void doInBackground(Void... params) {
+			try {
+				synchronized (this) {
+					int counter = 0;
+					while(counter <= 4){
+						this.wait(4000);
+						counter++;
+						//Set the current progress. 
+						publishProgress(counter * 25);
+					}
+				}
+			} 
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		//Update the progress bar
+		@Override
+		protected void onProgressUpdate(Integer... values){ 
+			pd.setProgress(values[0]);
+		}
+		
+		//After executing the code in the thread, it closes the load screen.
+		@Override
+		protected void onPostExecute(Void result) {
+			pd.dismiss();
+		}
+	}
+
+}

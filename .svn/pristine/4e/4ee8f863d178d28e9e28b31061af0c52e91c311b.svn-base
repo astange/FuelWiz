@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">FuelWiz</string>
+    <string name="settings">Settings</string>
+    <string name="network_not_enabled">Please enable Location Settings and Reopen Application</string>
+    <string name="open_location_settings">Open Location Settings</string>
+    <string name="Cancel">Cancel</string>
+    <string name="gas_stations">Gas Stations</string>
+    <string name="viewStationName">StationName</string>
+    <string name="viewPrice">Price</string>
+    <string name="viewDurationAway">Duration</string>
+    <string name="viewAddress">Address</string>
+    <string name="viewDistanceAway">Distance</string>
+    <string name="viewCost">Cost</string>
+    <string name="stationAddress">stationAddress</string>
+    <string name="lastUpdated">last updated</string>
+    <string name="overQueryLimit">Google has determined that we have requested too many distances in a 24 hour period. We are sorry, there is nothing we can do on our end to fix this. Your best bet is to hold off on getting gas til tomorrow or... change your IP address. Thanks for understanding.</string>
+
+     <string name="eulatext">This software is deemed \"AS IS\". If this application is being used by the \"consumer\", which hereby the consumer or user is refered to as any entity, including, but not limited to, any organization, company, group, affiliate, etc., the \"consumer\" hereby agrees to this terms of use and forfeits any right to challenge the software developer or \"ClemCode\" for any civil or criminal case under United States Law. If a user is outside of the United States, he or she immediately forfeits all rights to challenge the developer or \"ClemCode\" in any disagreement. By using this application you hereby agree to these terms of use. If the consumer does not agree to these terms of use, he or she is obligated to remove or \"Uninstall\" this application from their device. Under no circumstances shall the developer or \"ClemCode\" be held responsible for any misuse of this application that results in undesirable actions, including, but not limited to, personal injury, loss of data, and damages to the hardware or software of the phone or device on which the \"Software\" is \"Installed\".
+        	THIS SOFTWARE IS DISTRIBUTED AND COPYRIGHTED 2013 \"ClemCode\". This application is marketed as a testing tool only and is not meant for use on the road. Always keep your eyes on the road and drive safely.</string>
+    
+    
+</resources>

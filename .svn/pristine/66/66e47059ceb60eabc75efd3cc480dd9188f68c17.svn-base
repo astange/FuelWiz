@@ -1,0 +1,152 @@
+android.support.v4.app.BackStackState
+android.support.v4.app.BackStackState: android.os.Parcelable$Creator CREATOR
+android.support.v4.app.Fragment$SavedState
+android.support.v4.app.Fragment$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.app.FragmentManagerState
+android.support.v4.app.FragmentManagerState: android.os.Parcelable$Creator CREATOR
+android.support.v4.app.FragmentState
+android.support.v4.app.FragmentState: android.os.Parcelable$Creator CREATOR
+android.support.v4.app.FragmentTabHost: void setOnTabChangedListener(android.widget.TabHost$OnTabChangeListener)
+android.support.v4.app.FragmentTabHost$SavedState
+android.support.v4.app.FragmentTabHost$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.content.ModernAsyncTask$Status: android.support.v4.content.ModernAsyncTask$Status[] values()
+android.support.v4.content.ModernAsyncTask$Status: android.support.v4.content.ModernAsyncTask$Status valueOf(java.lang.String)
+android.support.v4.view.PagerTabStrip: void setTabIndicatorColor(int)
+android.support.v4.view.PagerTabStrip: void setTabIndicatorColorResource(int)
+android.support.v4.view.PagerTabStrip: int getTabIndicatorColor()
+android.support.v4.view.PagerTabStrip: void setTextSpacing(int)
+android.support.v4.view.PagerTabStrip: void setBackgroundDrawable(android.graphics.drawable.Drawable)
+android.support.v4.view.PagerTabStrip: void setBackgroundColor(int)
+android.support.v4.view.PagerTabStrip: void setBackgroundResource(int)
+android.support.v4.view.PagerTabStrip: void setDrawFullUnderline(boolean)
+android.support.v4.view.PagerTabStrip: boolean getDrawFullUnderline()
+android.support.v4.view.PagerTabStrip: int getMinHeight()
+android.support.v4.view.PagerTitleStrip: void setSingleLineAllCaps(android.widget.TextView)
+android.support.v4.view.PagerTitleStrip: void setTextSpacing(int)
+android.support.v4.view.PagerTitleStrip: int getTextSpacing()
+android.support.v4.view.PagerTitleStrip: void setNonPrimaryAlpha(float)
+android.support.v4.view.PagerTitleStrip: void setTextColor(int)
+android.support.v4.view.PagerTitleStrip: void setGravity(int)
+android.support.v4.view.PagerTitleStrip: int getMinHeight()
+android.support.v4.view.ViewPager: void setScrollState(int)
+android.support.v4.view.ViewPager: void setAdapter(android.support.v4.view.PagerAdapter)
+android.support.v4.view.ViewPager: android.support.v4.view.PagerAdapter getAdapter()
+android.support.v4.view.ViewPager: void setOnAdapterChangeListener(android.support.v4.view.ViewPager$OnAdapterChangeListener)
+android.support.v4.view.ViewPager: int getClientWidth()
+android.support.v4.view.ViewPager: void setCurrentItem(int)
+android.support.v4.view.ViewPager: int getCurrentItem()
+android.support.v4.view.ViewPager: void setOnPageChangeListener(android.support.v4.view.ViewPager$OnPageChangeListener)
+android.support.v4.view.ViewPager: void setChildrenDrawingOrderEnabledCompat(boolean)
+android.support.v4.view.ViewPager: int getOffscreenPageLimit()
+android.support.v4.view.ViewPager: void setOffscreenPageLimit(int)
+android.support.v4.view.ViewPager: void setPageMargin(int)
+android.support.v4.view.ViewPager: int getPageMargin()
+android.support.v4.view.ViewPager: void setPageMarginDrawable(android.graphics.drawable.Drawable)
+android.support.v4.view.ViewPager: void setPageMarginDrawable(int)
+android.support.v4.view.ViewPager: void setScrollingCacheEnabled(boolean)
+android.support.v4.view.ViewPager$SavedState
+android.support.v4.view.ViewPager$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.widget.DrawerLayout: void setScrimColor(int)
+android.support.v4.widget.DrawerLayout: void setDrawerListener(android.support.v4.widget.DrawerLayout$DrawerListener)
+android.support.v4.widget.DrawerLayout: void setDrawerLockMode(int)
+android.support.v4.widget.DrawerLayout$SavedState
+android.support.v4.widget.DrawerLayout$SavedState: android.os.Parcelable$Creator CREATOR
+android.support.v4.widget.SlidingPaneLayout: void setParallaxDistance(int)
+android.support.v4.widget.SlidingPaneLayout: int getParallaxDistance()
+android.support.v4.widget.SlidingPaneLayout: void setSliderFadeColor(int)
+android.support.v4.widget.SlidingPaneLayout: int getSliderFadeColor()
+android.support.v4.widget.SlidingPaneLayout: void setCoveredFadeColor(int)
+android.support.v4.widget.SlidingPaneLayout: int getCoveredFadeColor()
+android.support.v4.widget.SlidingPaneLayout: void setPanelSlideListener(android.support.v4.widget.SlidingPaneLayout$PanelSlideListener)
+android.support.v4.widget.SlidingPaneLayout: void setShadowDrawable(android.graphics.drawable.Drawable)
+android.support.v4.widget.SlidingPaneLayout: void setShadowResource(int)
+android.support.v4.widget.SlidingPaneLayout$SavedState
+android.support.v4.widget.SlidingPaneLayout$SavedState: android.os.Parcelable$Creator CREATOR
+com.jas.fuelwiz.GasStationDisplayActivity
+com.jas.fuelwiz.GasStationDisplayActivity: GasStationDisplayActivity()
+com.jas.fuelwiz.LicenseCheck
+com.jas.fuelwiz.LicenseCheck: LicenseCheck()
+com.jas.fuelwiz.MainActivity
+com.jas.fuelwiz.MainActivity: MainActivity()
+com.jas.fuelwiz.R$color: int HotPink
+com.jas.fuelwiz.R$color: int black
+com.jas.fuelwiz.R$color: int lime
+com.jas.fuelwiz.R$color: int opaque_red
+com.jas.fuelwiz.R$color: int translucent_red
+com.jas.fuelwiz.R$color: int violet
+com.jas.fuelwiz.R$color: int white
+com.jas.fuelwiz.R$color: int yellow
+com.jas.fuelwiz.R$dimen: int activity_horizontal_margin
+com.jas.fuelwiz.R$dimen: int activity_vertical_margin
+com.jas.fuelwiz.R$drawable: int andblue5dsm
+com.jas.fuelwiz.R$drawable: int back
+com.jas.fuelwiz.R$drawable: int bk42
+com.jas.fuelwiz.R$drawable: int bluebk3
+com.jas.fuelwiz.R$drawable: int button2bl
+com.jas.fuelwiz.R$drawable: int button2disabledbl
+com.jas.fuelwiz.R$drawable: int button2pressedbl
+com.jas.fuelwiz.R$drawable: int button2selectedbl
+com.jas.fuelwiz.R$drawable: int button_menu
+com.jas.fuelwiz.R$drawable: int ch
+com.jas.fuelwiz.R$drawable: int checkbox
+com.jas.fuelwiz.R$drawable: int chu
+com.jas.fuelwiz.R$drawable: int fwicon
+com.jas.fuelwiz.R$drawable: int hdlightblue
+com.jas.fuelwiz.R$drawable: int renderedbutton3
+com.jas.fuelwiz.R$id: int bCompute
+com.jas.fuelwiz.R$id: int checkHighWays
+com.jas.fuelwiz.R$id: int checkTolls
+com.jas.fuelwiz.R$id: int checkTwoWayTrip
+com.jas.fuelwiz.R$id: int distanceAndDurationAway
+com.jas.fuelwiz.R$id: int editGallons
+com.jas.fuelwiz.R$id: int editMPG
+com.jas.fuelwiz.R$id: int lastUpdate
+com.jas.fuelwiz.R$id: int listStations
+com.jas.fuelwiz.R$id: int price
+com.jas.fuelwiz.R$id: int rLMyLocation
+com.jas.fuelwiz.R$id: int relMain
+com.jas.fuelwiz.R$id: int reportBug
+com.jas.fuelwiz.R$id: int seekRadius
+com.jas.fuelwiz.R$id: int settings
+com.jas.fuelwiz.R$id: int stationAddress
+com.jas.fuelwiz.R$id: int stationName
+com.jas.fuelwiz.R$id: int tBManualLocation
+com.jas.fuelwiz.R$id: int tMyLocation
+com.jas.fuelwiz.R$id: int tabCheapest
+com.jas.fuelwiz.R$id: int tabDiesel
+com.jas.fuelwiz.R$id: int tabDistance
+com.jas.fuelwiz.R$id: int tabHostSort
+com.jas.fuelwiz.R$id: int tabMid
+com.jas.fuelwiz.R$id: int tabPre
+com.jas.fuelwiz.R$id: int tabPrice
+com.jas.fuelwiz.R$id: int tabReg
+com.jas.fuelwiz.R$id: int tinfo
+com.jas.fuelwiz.R$id: int totalCost
+com.jas.fuelwiz.R$id: int tseekRadius
+com.jas.fuelwiz.R$id: int tvGallons
+com.jas.fuelwiz.R$id: int tvMPG
+com.jas.fuelwiz.R$layout: int activity_main
+com.jas.fuelwiz.R$layout: int display_activity
+com.jas.fuelwiz.R$layout: int text_station_item
+com.jas.fuelwiz.R$menu: int main
+com.jas.fuelwiz.R$string: int Cancel
+com.jas.fuelwiz.R$string: int app_name
+com.jas.fuelwiz.R$string: int eulatext
+com.jas.fuelwiz.R$string: int gas_stations
+com.jas.fuelwiz.R$string: int lastUpdated
+com.jas.fuelwiz.R$string: int network_not_enabled
+com.jas.fuelwiz.R$string: int open_location_settings
+com.jas.fuelwiz.R$string: int overQueryLimit
+com.jas.fuelwiz.R$string: int settings
+com.jas.fuelwiz.R$string: int stationAddress
+com.jas.fuelwiz.R$string: int viewAddress
+com.jas.fuelwiz.R$string: int viewCost
+com.jas.fuelwiz.R$string: int viewDistanceAway
+com.jas.fuelwiz.R$string: int viewDurationAway
+com.jas.fuelwiz.R$string: int viewPrice
+com.jas.fuelwiz.R$string: int viewStationName
+com.jas.fuelwiz.R$style: int AppBaseTheme
+com.jas.fuelwiz.R$style: int AppTheme
+com.jas.fuelwiz.R$xml: int preferences
+com.jas.fuelwiz.SettingsActivity
+com.jas.fuelwiz.SettingsActivity: SettingsActivity()

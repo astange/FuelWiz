@@ -1,0 +1,32 @@
+package com.jas.fuelwiz;
+
+public class GoogleDistance {
+	
+	private double distance;
+	private String duration;
+	private String destination;
+
+	public GoogleDistance(double distance, String duration, String destination) {
+		// TODO Auto-generated constructor stub
+		this.distance = distance;
+		this.duration = duration;
+		this.destination = destination;
+	}
+	
+	public double getDistance() {
+		return distance;
+	}
+	
+	public String getDuration() {
+		return duration;
+	}
+	
+	public String getDestination() {
+		return destination;
+	}
+	
+	public String toString() {
+		return "To go to the station at: " + destination + " you must drive: " + distance + " and it will take you: " + duration;
+	}
+
+}

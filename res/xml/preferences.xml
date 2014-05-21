@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen 
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="General">
+  <!--        <ListPreference android:key="prefSensitivity" android:summary="Edit the sensitivity for the accelerometer" android:title="Sensitivity" android:entries="@array/SensitivityTitleArray" android:entryValues="@array/SensitivityArray" /> -->
+        <CheckBoxPreference android:key="prefShowAllStations" android:summary="Show all gas stations in the area, irregardless if there is no price data or they haven't been updated in a long time." android:title="Show All Gas Stations" android:defaultValue="false"/>
+        
+	</PreferenceCategory>
+	<PreferenceCategory android:title="Hourly Pay">
+	    <PreferenceScreen android:title="Hourly Pay">
+	        <CheckBoxPreference 
+	            android:key="usepay"
+	            android:title="Use Hourly Wage"
+	            android:summary="Use hourly wage in computation of driving duration to the station"
+	            android:defaultValue="false"/>
+	        <EditTextPreference 
+	            android:key="pay"
+	            android:title="Enter Hourly Pay:" 
+	            android:inputType="numberDecimal"
+	            android:dialogTitle="Enter hourly pay:" >
+	        </EditTextPreference>
+	    </PreferenceScreen>
+	    
+	    
+	</PreferenceCategory>
+    
+	<PreferenceCategory android:title="Notice:">
+	    <Preference android:title="" android:key="prefRestart" android:summary="The application must be restarted for some of these settings to take effect" android:selectable="false"/>
+	   
+	       
+	</PreferenceCategory>
+	 <Preference android:title="EULA" android:key="prefEULA" android:summary="Read the terms of use for this application" />    
+    
+</PreferenceScreen>

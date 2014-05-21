@@ -1,0 +1,33 @@
+package com.jas.fuelwiz;
+
+import java.io.*;
+import java.net.*;
+
+import org.json.*;
+
+public class GasStationRequest {
+	private static String slash = "/";
+		
+	public static GasStation[] getGasStationsDistance(String latitude, String longitude, 
+											String radius, String fuelType, String sortBy){
+		GasStation[] stations = null;
+		String urlString = "http://devapi.mygasfeed.com/stations/radius/" + latitude + slash + longitude + slash
+											+ radius + slash + fuelType + slash + sortBy + slash + "rfej9napna.json?callback=?";
+		try{
+			URL url = new URL(urlString);
+			URLConnection conn = url.openConnection();
+			InputStream is = conn.getInputStream(); 
+			JSONObject json = new JSONObject(is.toString());
+		}
+		catch(IOException ie){
+			
+		}
+		catch(JSONException je){
+			
+		}
+		catch(Exception e){
+			
+		}
+		return stations;
+	}
+}

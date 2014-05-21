@@ -1,0 +1,157 @@
+package com.jas.fuelwiz;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Scanner;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.os.StrictMode;
+import android.widget.Toast;
+
+public class GoogleDistanceMatrixRequest {
+	
+	public static final int MAX_NUMBER_OF_STATIONS = 50;
+	public static final int MAX_DISTANCE_TO_MULTIPLY = 4;
+	public static final String OVER_QUERY_LIMIT_CODE = "OVER_QUERY_LIMIT";
+	
+	protected static String mylocation;
+	//need to return duration and distance
+	public static GoogleDistance[] getGoogleDistanceRequest(String latitude, String longitude, GasStation[] gasStations) {
+		
+		GoogleDistance[] results = null;
+		
+		//ping internet with least amount of info, so copy gasstation array and throw out unusable stations.. i.e no price
+				
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy); 
+		
+		try {
+			URL url = new URL(getURL(latitude, longitude, gasStations));
+			URLConnection conn = url.openConnection();
+			InputStream is = conn.getInputStream();
+			Scanner scan = new Scanner(is);
+			String fromInternet = "";
+			while(scan.hasNext()) {
+				fromInternet += scan.next();
+				fromInternet += " ";
+			}
+			is.close();
+			//parsing json from google
+			JSONObject json = new JSONObject(fromInternet);
+			JSONArray destinations = json.getJSONArray("destination_addresses");
+			if(json.getString("status").equalsIgnoreCase(OVER_QUERY_LIMIT_CODE)) {
+				return null;
+			}
+			try {
+			mylocation = json.getJSONArray("origin_addresses").getString(0);
+			} catch (JSONException e) {
+				mylocation = "Error getting origin address from the internet";
+			}
+			JSONArray rows = json.getJSONArray("rows");
+			JSONArray elements = new JSONArray(rows.toString());
+			//testing destinations at cmdlne
+	//		System.out.println(fromInternet);
+			
+			//get array of station info ie driving distance and time
+			try {
+			JSONArray distancesAndDurations = elements.getJSONObject(0).getJSONArray("elements");
+			
+			//determine size of array based on number of destinations that google returns
+			results = new GoogleDistance[destinations.length()];
+			//set values in each instance of a station from googleinstance
+			for(int i = 0; i < destinations.length(); i++) {
+				
+				results[i] = new GoogleDistance(distancesAndDurations.getJSONObject(i).getJSONObject("distance").getDouble("value"), 
+						distancesAndDurations.getJSONObject(i).getJSONObject("distance").getString("text"),
+						distancesAndDurations.getJSONObject(i).getJSONObject("duration").getString("text"), 
+						destinations.getString(i), gasStations[i]);
+			}
+			} catch (JSONException e) {
+				System.out.println(e.getMessage());
+				return null;
+			}
+						
+			
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			MainActivity.bCompute.performClick();
+			return null;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace(); 
+			return null;
+		}
+		
+		int numberOfStationsWithValidParams = 0;
+		if(results == null) return null;
+		for(int i = 0; i < results.length; i++) {
+			if((results[i].getDistanceInMiles() > (MainActivity.radius * MAX_DISTANCE_TO_MULTIPLY)) || 
+					!getLastUpdatedUsability(results[i])) {
+				
+				results[i].getStation().setUsable(false);
+			} else { 
+				results[i].getStation().setUsable(true);
+				numberOfStationsWithValidParams++;
+			}
+		}
+		
+		GoogleDistance[] copyOfDistances = new GoogleDistance[numberOfStationsWithValidParams];
+		int j = 0;
+		for(int i = 0; i < results.length; i++) {
+			if(results[i].getStation().getUseable()) {
+				copyOfDistances[j] = results[i];
+				j++;
+			}
+		}
+		
+		return copyOfDistances;
+		
+	}
+	
+	private static boolean getLastUpdatedUsability(GoogleDistance gd) {
+		Scanner scan = new Scanner(gd.getStation().getLastUpdated());
+		scan.next();
+		//second token is days, mins, secs, weeks, months 
+		String toCheck = scan.next();
+		
+		if(toCheck.toUpperCase().startsWith("MO") || 
+				toCheck.toUpperCase().startsWith("W") ||
+				toCheck.toUpperCase().startsWith("Y")) {
+			return false;
+		} else return true;
+		
+	}
+	
+	public static String getURL(String latitude, String longitude, GasStation[] gasStations) {
+		String urlString = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" + latitude + "," + longitude + "&destinations=";
+		//format destinations
+		String destinationsformatted = "";
+		if(gasStations.length < 1) return null;
+		for(int i = 0; i < gasStations.length; i++) {
+			destinationsformatted += gasStations[i].getLatitude() + "," + gasStations[i].getLongitude();
+			destinationsformatted += "|";
+		}
+		destinationsformatted = destinationsformatted.substring(0, destinationsformatted.length() - 1);
+		urlString += destinationsformatted;
+		if(MainActivity.checkHighways.isChecked()) {
+			urlString += "&avoid=highways";
+		}
+		if(MainActivity.checkTolls.isChecked()) {
+			urlString += "&avoid=tolls";
+		}
+		urlString += "&mode=driving&units=imperial&sensor=true";
+		return urlString;
+	}
+		
+}

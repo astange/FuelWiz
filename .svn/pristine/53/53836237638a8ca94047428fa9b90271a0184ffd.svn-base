@@ -1,0 +1,46 @@
+package com.jas.fuelwiz;
+
+public class GasStation {
+	private double price, distanceAway;
+	private int lastUpdated;
+	private String name, address, city, country;
+	
+	public GasStation(String country, double price, String address, String name, String city, int lastUpdated, double distanceAway){
+		this.country = country;
+		this.price = price;
+		this.address = address;
+		this.name = name;
+		this.city = city;
+		this.lastUpdated = lastUpdated;
+		this.distanceAway = distanceAway;
+	}
+	
+	public double getPrice(){
+		return price;
+	}
+	
+	public double getDistanceAway(){
+		return distanceAway;
+	}
+	
+	public int getLastUpdated(){
+		return lastUpdated;
+	}
+	
+	public String getName(){
+		return name;
+	}
+	
+	public String getAddress(){
+		return address;
+	}
+	
+	
+	public String getCity(){
+		return city;
+	}
+	
+	public String getCountry(){
+		return country;
+	}
+}

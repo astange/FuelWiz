@@ -1,0 +1,63 @@
+package com.jas.fuelwiz;
+
+import java.text.NumberFormat;
+import java.util.ArrayList;
+
+import android.app.Activity;
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
+
+public class StationAdapter extends ArrayAdapter<GoogleDistance>{
+    private ArrayList<GoogleDistance> entries;
+    private Activity activity;
+ 
+    public StationAdapter(Activity a, int textViewResourceId, ArrayList<GoogleDistance> entries) {
+        super(a, textViewResourceId, entries);
+        this.entries = entries;
+        this.activity = a;
+    }
+ 
+    public static class ViewHolder{
+        public TextView tPrice, tTotalCost, tStationName;
+        public TextView tDistanceAndDurationAway, tAddress, tLastUpdated;
+        
+    }
+ 
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        View v = convertView;
+        ViewHolder holder;
+        if (v == null) {
+            LayoutInflater vi =
+                (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            v = vi.inflate(R.layout.text_station_item, null);
+            holder = new ViewHolder();
+            holder.tPrice = (TextView) v.findViewById(R.id.price);
+            holder.tDistanceAndDurationAway = (TextView) v.findViewById(R.id.distanceAndDurationAway);
+            holder.tTotalCost = (TextView) v.findViewById(R.id.totalCost);
+            holder.tStationName = (TextView) v.findViewById(R.id.stationName);
+            holder.tAddress = (TextView) v.findViewById(R.id.stationAddress);
+            holder.tLastUpdated = (TextView) v.findViewById(R.id.lastUpdate);
+            v.setTag(holder);
+        }
+        else
+            holder=(ViewHolder)v.getTag();
+ 
+        final GoogleDistance custom = entries.get(position);
+        if (custom != null) {
+            holder.tPrice.setText(NumberFormat.getCurrencyInstance().format(MainActivity.ReturnedDrivingDistances[position].getStation().getPriceAsDouble()));
+            holder.tDistanceAndDurationAway.setText(MainActivity.ReturnedDrivingDistances[position].getGDistance() + " or " + MainActivity.ReturnedDrivingDistances[position].getDuration() + " away");
+            holder.tTotalCost.setText("You save: " + MainActivity.ReturnedDrivingDistances[position].getStation().getDifferenceInSavingsFormatted() + " compared to the station below");
+            holder.tStationName.setText(MainActivity.ReturnedDrivingDistances[position].getStation().getName());
+            holder.tAddress.setText(MainActivity.ReturnedDrivingDistances[position].getStation().getAddress());
+            holder.tLastUpdated.setText("Last updated " + MainActivity.ReturnedDrivingDistances[position].getStation().getLastUpdated());
+            
+        }
+        return v;
+    }
+ 
+}

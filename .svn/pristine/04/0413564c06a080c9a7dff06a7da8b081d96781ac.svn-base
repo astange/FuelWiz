@@ -1,0 +1,67 @@
+package com.jas.fuelwiz;
+
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+
+import org.json.*;
+
+import android.os.StrictMode;
+
+public class GasStationRequest {
+	private static String slash = "/";
+		
+	public static GasStation[] getGasStationsDistance(String latitude, String longitude, 
+											String radius, String fuelType, String sortBy){
+		GasStation[] stations = null;
+		String urlString = "http://devapi.mygasfeed.com/stations/radius/" + latitude + slash + longitude + slash
+											+ radius + slash + fuelType + slash + sortBy + slash + "rfej9napna.json?callback=?";
+		
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy); 
+		
+		try{ 
+			URL url = new URL(urlString);
+			URLConnection conn = url.openConnection();
+			InputStream is = conn.getInputStream();
+			Scanner scan = new Scanner(is);
+			String fromInternet = "";
+			while(scan.hasNext()) {
+				fromInternet += scan.next();
+				fromInternet += " ";
+			}
+			is.close();
+			
+			String ParseToJson = fromInternet.substring(2, fromInternet.length() - 2);
+			System.out.println(ParseToJson);
+			JSONObject json = new JSONObject(ParseToJson);
+			JSONArray Stations = json.getJSONArray("stations");
+			GasStation[] gasStations = new GasStation[Stations.length()];
+			for(int i = 0; i < Stations.length(); i++) {
+				gasStations[i] = new GasStation(Stations.getJSONObject(i).getString("country").trim(), 
+						Stations.getJSONObject(i).getString("price").trim(), 
+						Stations.getJSONObject(i).getString("address").trim(),
+						Stations.getJSONObject(i).getString("station").trim(),
+						Stations.getJSONObject(i).getString("city").trim(),
+						Stations.getJSONObject(i).getString("date").trim(),
+						Stations.getJSONObject(i).getString("distance").trim(),
+						Stations.getJSONObject(i).getString("lat").trim(),
+						Stations.getJSONObject(i).getString("lng").trim(),
+						Stations.getJSONObject(i).getString("region").trim(),
+						Stations.getJSONObject(i).getString("zip").trim());
+			}
+			stations = gasStations;
+
+		}
+		catch(IOException ie){
+			ie.printStackTrace();
+		}
+		catch(JSONException je){
+			je.printStackTrace();
+		}
+		catch(Exception e){
+			e.printStackTrace();
+		}
+		return stations;
+	}
+}

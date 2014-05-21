@@ -1,0 +1,184 @@
+package com.jas.fuelwiz;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+
+import android.animation.Animator;
+import android.app.ActionBar.Tab;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.AbsListView.OnScrollListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AbsListView;
+import android.widget.ListView;
+import android.widget.TabHost;
+import android.widget.TabHost.OnTabChangeListener;
+import android.widget.TabWidget;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class GasStationDisplayActivity extends Activity{
+	//private ArrayAdapter<GoogleDistance> Stations;
+	
+	TextView tHints;
+	TabHost tabHost;
+	StationAdapter adapter;
+	ArrayList<GoogleDistance> list;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.display_activity);
+		
+		if(!LicenseCheck.valid){
+			finish();
+		}
+		
+		tabHost = (TabHost) findViewById(R.id.tabHostSort);
+		tabHost.setup();
+		tabHost.addTab(tabHost.newTabSpec("cheapest").setIndicator("Total Cost").setContent(R.id.tabCheapest));
+		tabHost.addTab(tabHost.newTabSpec("distance").setIndicator("Distance").setContent(R.id.tabDistance));
+		tabHost.addTab(tabHost.newTabSpec("price").setIndicator("Price per gallon").setContent(R.id.tabPrice));
+		tabHost.setOnTabChangedListener(new TabClickListener());
+	    for(int i = 0; i < tabHost.getTabWidget().getChildCount(); i++) {
+	        TextView tv = (TextView) tabHost.getTabWidget().getChildAt(i).findViewById(android.R.id.title);
+	        tv.setTextColor(Color.WHITE);
+	    }
+	 
+		TextView tMyLocation = (TextView) findViewById(R.id.tMyLocation);
+		tMyLocation.setText("My location: \n" + GoogleDistanceMatrixRequest.mylocation);
+		tHints = (TextView) findViewById(R.id.tinfo);
+		tHints.setVisibility(View.GONE);
+		
+		final ListView listStations = (ListView) findViewById(R.id.listStations);
+		
+		list = new ArrayList<GoogleDistance>();
+		for(int i = 0; i < MainActivity.ReturnedDrivingDistances.length; i++) {
+			list.add(MainActivity.ReturnedDrivingDistances[i]);
+		}
+		
+		adapter = new StationAdapter(GasStationDisplayActivity.this, R.layout.text_station_item, list);
+		listStations.setAdapter(adapter);
+		
+		listStations.setOnItemClickListener(new OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, final View view, final int position,
+					long id) {
+				AlertDialog.Builder alert = new AlertDialog.Builder(GasStationDisplayActivity.this);
+				alert.setMessage("Get driving directions to this station?");
+				alert.setCancelable(true);
+				
+				alert.setPositiveButton("Yes", new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						String url = "http://maps.google.com/maps?saddr=" + 
+								MainActivity.latitude + "," + MainActivity.longitude + "&daddr=" + 
+								MainActivity.ReturnedDrivingDistances[position].getStation().getLatitude() + "," +  
+								MainActivity.ReturnedDrivingDistances[position].getStation().getLongitude() + "&avoid=highways&avoid=tolls";
+						System.out.println(url);
+							Intent toMaps = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
+							startActivity(toMaps);
+					}
+				});
+				
+				alert.setNegativeButton("Cancel", new OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+					}
+				});
+
+				AlertDialog alertDialog = alert.create();
+				alertDialog.show();
+			}
+		});
+		
+		listStations.setOnScrollListener(new OnScrollListener() {
+			
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState) {
+				if(scrollState == SCROLL_STATE_TOUCH_SCROLL) {
+					tHints.setVisibility(view.VISIBLE);
+					Animation fadein = AnimationUtils.loadAnimation(GasStationDisplayActivity.this, android.R.anim.fade_in);
+					tHints.startAnimation(fadein);
+				} else {
+					Animation fadeout = AnimationUtils.loadAnimation(GasStationDisplayActivity.this, android.R.anim.fade_out);
+					tHints.startAnimation(fadeout);
+					tHints.setVisibility(View.GONE);
+				}
+			}
+			
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem,
+					int visibleItemCount, int totalItemCount) {
+			}
+		});
+	}
+	
+	private class TabClickListener implements OnTabChangeListener{
+
+		@Override
+		public void onTabChanged(String tabId) {
+			if(tabId.compareTo("distance") == 0){
+				Comparator<GoogleDistance> c = new Comparator<GoogleDistance>(){
+					@Override
+					public int compare(GoogleDistance gas1, GoogleDistance gas2) {
+						if(gas1.getDistance() > gas2.getDistance()) {
+							return 1;
+						} else if (gas1.getDistance() < gas2.getDistance()) {
+							return -1;
+						}else return 0;
+					}
+				};
+				Arrays.sort(MainActivity.ReturnedDrivingDistances, c);
+				adapter.clear();
+				adapter.addAll(MainActivity.ReturnedDrivingDistances);
+			}
+			else if(tabId.compareTo("price") == 0){
+				Comparator<GoogleDistance> c = new Comparator<GoogleDistance>(){
+					@Override
+					public int compare(GoogleDistance gas1, GoogleDistance gas2) {
+						if(gas1.getStation().getPriceAsDouble() > gas2.getStation().getPriceAsDouble()) {
+							return 1;
+						} else if (gas1.getStation().getPriceAsDouble() < gas2.getStation().getPriceAsDouble()) {
+							return -1;
+						}else return 0;
+					}
+				};
+				Arrays.sort(MainActivity.ReturnedDrivingDistances, c);
+				adapter.clear();
+				adapter.addAll(MainActivity.ReturnedDrivingDistances);
+			}
+			else{
+				Comparator<GoogleDistance> c = new Comparator<GoogleDistance>(){
+
+					@Override
+					public int compare(GoogleDistance lhs, GoogleDistance rhs) {
+						if(lhs.getStation().getSavings() > rhs.getStation().getSavings()) {
+							return 1;
+						} else if (lhs.getStation().getSavings() < rhs.getStation().getSavings()) {
+							return -1;
+						}else return 0;
+					}
+					
+				};
+				adapter.clear();
+				Arrays.sort(MainActivity.ReturnedDrivingDistances, c);
+				adapter.addAll(MainActivity.ReturnedDrivingDistances);
+			}
+		}
+		
+	}
+}

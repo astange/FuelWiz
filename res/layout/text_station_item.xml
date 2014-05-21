@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    android:background="#2184B5" >
+
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="3dp"
+    android:layout_marginLeft="3dp"
+    android:layout_marginRight="3dp"
+    android:layout_marginTop="3dp"
+    android:background="@drawable/renderedbutton3"
+    android:padding="10dp" >
+    
+    <TextView
+        android:id="@+id/price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:gravity="top|right"
+        android:inputType="none"
+        android:text="@string/viewPrice"
+        android:textAlignment="viewStart"
+        android:textColor="@color/white"
+        android:textSize="40dp" />
+
+            <TextView
+                android:id="@+id/stationName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/price"
+                android:ems="10"
+                android:inputType="none"
+                android:text="@string/viewStationName"
+                android:textColor="@color/white"
+                android:textSize="25dp" />
+
+            <TextView
+                android:id="@+id/distanceAndDurationAway"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/lastUpdate"
+                android:ems="10"
+                android:gravity="right"
+                android:inputType="none"
+                android:text="@string/viewDistanceAway"
+                android:textAlignment="0"
+                android:textColor="@color/white"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/totalCost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/stationAddress"
+                android:layout_below="@+id/stationAddress"
+                android:ems="10"
+                android:inputType="none"
+                android:text="@string/viewCost"
+                android:textColor="@color/white"
+                android:textSize="15dp"
+                android:typeface="normal" />
+
+            <TextView
+                android:id="@+id/stationAddress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignLeft="@+id/stationName"
+                android:layout_below="@+id/stationName"
+                android:text="@string/stationAddress"
+                android:textColor="@color/white"
+                android:textSize="15dp" />
+
+            <TextView
+                android:id="@+id/lastUpdate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_below="@+id/price"
+                android:text="@string/lastUpdated"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
+
+</RelativeLayout>
+</RelativeLayout>

@@ -1,0 +1,190 @@
+package com.jas.fuelwiz;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.jar.Attributes.Name;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.provider.Settings;
+import android.text.InputType;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class StationAdapter extends ArrayAdapter<GoogleDistance>{
+    private ArrayList<GoogleDistance> entries;
+    private Activity activity;
+ 
+    public StationAdapter(Activity a, int textViewResourceId, ArrayList<GoogleDistance> entries) {
+        super(a, textViewResourceId, entries);
+        this.entries = entries;
+        this.activity = a;
+    }
+ 
+    public static class ViewHolder{
+        public TextView tPrice, tTotalCost, tStationName;
+        public TextView tDistanceAndDurationAway, tAddress, tLastUpdated;
+        
+    }
+ 
+    @Override
+    public View getView(final int position, View convertView, ViewGroup parent) {
+        View v = convertView;
+        ViewHolder holder;
+        if (v == null) {
+            LayoutInflater vi =
+                (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            v = vi.inflate(R.layout.text_station_item, null);
+            holder = new ViewHolder();
+            holder.tPrice = (TextView) v.findViewById(R.id.price);
+            holder.tDistanceAndDurationAway = (TextView) v.findViewById(R.id.distanceAndDurationAway);
+            holder.tTotalCost = (TextView) v.findViewById(R.id.totalCost);
+            holder.tStationName = (TextView) v.findViewById(R.id.stationName);
+            holder.tAddress = (TextView) v.findViewById(R.id.stationAddress);
+            holder.tLastUpdated = (TextView) v.findViewById(R.id.lastUpdate);
+            v.setTag(holder);
+        }
+        else
+            holder=(ViewHolder)v.getTag();
+ 
+        final GoogleDistance custom = entries.get(position);
+        if (custom != null) {
+            holder.tPrice.setText(NumberFormat.getCurrencyInstance().format(MainActivity.ReturnedDrivingDistances[position].getStation().getPriceAsDouble()));
+            holder.tDistanceAndDurationAway.setText(MainActivity.ReturnedDrivingDistances[position].getGDistance() + " or " + MainActivity.ReturnedDrivingDistances[position].getDuration() + " away");
+            holder.tTotalCost.setText("Total cost: " + MainActivity.ReturnedDrivingDistances[position].getStation().getSavingsFormatted());
+            holder.tStationName.setText(MainActivity.ReturnedDrivingDistances[position].getStation().getName());
+            holder.tAddress.setText(MainActivity.ReturnedDrivingDistances[position].getStation().getAddress());
+            holder.tLastUpdated.setText("Last updated " + MainActivity.ReturnedDrivingDistances[position].getStation().getLastUpdated());
+            holder.tPrice.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					alertUpdatePrice(position);
+					}
+			});
+        }
+        return v;
+    }
+    
+    public void alertUpdatePrice(final int position) {
+		AlertDialog.Builder dialog;
+		dialog = new AlertDialog.Builder(getContext());
+        dialog.setTitle("Submit New Price?");
+        final EditText newPriceEdit = new EditText(getContext());
+        newPriceEdit.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        dialog.setView(newPriceEdit);
+        dialog.create();
+        dialog.setPositiveButton("Submit", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                // TODO Auto-generated method stub
+            	try {
+            		String priceToUpdate = newPriceEdit.getText().toString();
+            		Double.parseDouble(priceToUpdate);
+            		httpPOST(position, priceToUpdate);
+            	} catch (NumberFormatException n) {
+            		//return;
+            	}
+            }          
+        });
+        dialog.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				
+			}
+		});
+        dialog.setCancelable(false);
+        dialog.show();
+	} 
+    
+    	private void httpPOST(final int position, final String priceToUpdate) {
+    		//http post goes here.
+    		ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+
+    		//place them in an array list
+    		nameValuePairs.add(new BasicNameValuePair("price", priceToUpdate));
+    		nameValuePairs.add(new BasicNameValuePair("fueltype", "reg"));
+        	nameValuePairs.add(new BasicNameValuePair("stationid", entries.get(position).getStation().getStationID()));
+
+        	UpdatePriceAsyncTask updatePriceTask = new UpdatePriceAsyncTask();
+        	updatePriceTask.execute(nameValuePairs);					    	
+
+    	}
+    	    	
+    	private class UpdatePriceAsyncTask extends AsyncTask<ArrayList<NameValuePair>, Void, Void> {
+    	        ProgressDialog mProgressDialog;
+    	        
+    	        @Override
+    	        protected void onPostExecute(Void result) {
+    	            mProgressDialog.dismiss();
+    	        }
+
+    	        @Override
+    	        protected void onPreExecute() {
+    	            mProgressDialog = ProgressDialog.show(getContext(), "Executing...", "Updating Price...");
+    	        }
+
+    	        @Override
+    	        protected Void doInBackground(ArrayList<NameValuePair>... infoPairs) {
+    	            //Create new default HTTPClient
+    	            HttpClient httpclient = new DefaultHttpClient();
+    	            //Create new HTTP POST with URL to php file as parameter
+    	            HttpPost httppost = new HttpPost("http://api.mygasfeed.com/locations/price/ytc0ljswtd.json"); 
+    	            //Next block of code needs to be surrounded by try/catch block for it to work
+    	            try {
+    	                //Add array list to http post
+    	                httppost.setEntity(new UrlEncodedFormEntity(infoPairs[0]));
+    	                //assign executed form container to response
+    	                HttpResponse response = httpclient.execute(httppost); //response
+    	                System.out.println(response.toString());
+    	                //assign response entity to http entity
+    	                HttpEntity entity = response.getEntity();
+    	                //check if entity is not null
+    	                if(entity != null){
+    	                 	//Create new input stream with received data assigned
+    	                    String instream = entity.toString();
+
+    	                    //Create new JSON Object. assign converted data as parameter.
+    	                    JSONObject jsonResponse = new JSONObject(instream);
+    	                    }
+    	                } catch(Exception e){
+
+    	               // e.printStackTrace();
+
+    	               return null;
+    	            }
+					return null;
+
+    	        }
+    	}
+
+    	            
+    	        
+}
